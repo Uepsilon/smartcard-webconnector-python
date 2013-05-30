@@ -5,13 +5,14 @@
 Smartcard Webconnector - Idenify with your Smartcard!
 
 Usage:
-    webconnector.py -U=<url> [-R=<resource>]
+    webconnector.py -U=<url> -R=<resource> -E=<event>
     webconnector.py -h
     webconnector.py --version
 
 Options:
     -U --url=<url>              Url to POST to
-    -R --resource=<resource>    Resource-Name to Identify on Webservice-Side
+    -R --resource=<resource>    Resource-Name
+    -E --event=<event>          Event-ID
     -h --help                   Shows this Screen
     --version                   Shows the Version
 """
@@ -24,14 +25,9 @@ import urllib
 import sys
 
 # define the apdus used in this script
-GET_RESPONSE = [0XA0, 0XC0, 00, 00]
+GET_RESPONSE = [0XA0, 0XC0, 0x00, 0x00]
 SELECT = [0xA0, 0xA4, 0x00, 0x00, 0x02]
 GET_UID = [0xFF, 0xCA, 0x00, 0x00, 0x00]
-READER_LED = [0xFF, 0xF0, 0x00, 0x00, 0x02, 0x1E]
-
-# LED-States
-LED_OFF = 0x00
-LED_BLINKING = 0x01
 
 
 class Webconnector():
@@ -61,17 +57,13 @@ class Webconnector():
 
             cardUID = self.getUID(cardservice.connection)
 
-            # self.ledState(cardservice.connection, LED_BLINKING)
-            self.ledState(cardservice.connection, LED_OFF)
             if self.checkNewUID(cardUID):
                 # here we go
-                print self.webConnect(cardUID)
+                self.webConnect(cardUID)
             else:
                 print "Same UID as Before... Skipping..."
 
             cardservice.connection.disconnect()
-
-            break
 
             # Ugly shit to check if the card has been removed
             while self.cardRequest.waitforcardevent():
@@ -91,16 +83,6 @@ class Webconnector():
         else:
             return False
 
-
-    def ledState(self, connection, state):
-        if state is LED_BLINKING:
-            # First GREEN then RED
-            cmd = READER_LED + [0x05, 0x05]
-        else:
-            cmd = READER_LED + [0x01, 0x01]
-
-        self.transmission(connection, cmd)
-
     def checkNewUID(self, uid):
         if uid == self.lastId or uid is False:
             return False
@@ -110,7 +92,7 @@ class Webconnector():
 
     def getUID(self, connection):
         # Read UID from Card
-        response = self.transmission(connection, GET_UID)
+        return self.transmission(connection, GET_UID)
 
     def transmission(self, connection, cmd):
         response, sw1, sw2 = connection.transmit(cmd)
