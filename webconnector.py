@@ -60,6 +60,8 @@ class Webconnector():
             else:
                 print "Same UID as Before... Skipping..."
 
+            cardservice.connection.disconnect()
+
             # Ugly shit to check if the card has been removed
             while self.cardRequest.waitforcardevent():
                 pass
