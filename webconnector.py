@@ -21,11 +21,17 @@ from smartcard.CardType import ATRCardType
 from smartcard.CardRequest import CardRequest
 from docopt import docopt
 import urllib
+import sys
 
 # define the apdus used in this script
 GET_RESPONSE = [0XA0, 0XC0, 00, 00]
 SELECT = [0xA0, 0xA4, 0x00, 0x00, 0x02]
 GET_UID = [0xFF, 0xCA, 0x00, 0x00, 0x00]
+READER_LED = [0xFF, 0xF0, 0x00, 0x00, 0x02, 0x1E]
+
+# LED-States
+LED_OFF = 0x00
+LED_BLINKING = 0x01
 
 
 class Webconnector():
@@ -54,6 +60,9 @@ class Webconnector():
             cardservice.connection.connect()
 
             cardUID = self.getUID(cardservice.connection)
+
+            # self.ledState(cardservice.connection, LED_BLINKING)
+            self.ledState(cardservice.connection, LED_OFF)
             if self.checkNewUID(cardUID):
                 # here we go
                 print self.webConnect(cardUID)
@@ -61,6 +70,8 @@ class Webconnector():
                 print "Same UID as Before... Skipping..."
 
             cardservice.connection.disconnect()
+
+            break
 
             # Ugly shit to check if the card has been removed
             while self.cardRequest.waitforcardevent():
@@ -80,6 +91,16 @@ class Webconnector():
         else:
             return False
 
+
+    def ledState(self, connection, state):
+        if state is LED_BLINKING:
+            # First GREEN then RED
+            cmd = READER_LED + [0x05, 0x05]
+        else:
+            cmd = READER_LED + [0x01, 0x01]
+
+        self.transmission(connection, cmd)
+
     def checkNewUID(self, uid):
         if uid == self.lastId or uid is False:
             return False
@@ -89,12 +110,31 @@ class Webconnector():
 
     def getUID(self, connection):
         # Read UID from Card
-        response, sw1, sw2 = connection.transmit(GET_UID)
+        response = self.transmission(connection, GET_UID)
 
-        if sw1 is 0x90:
-            return response
+    def transmission(self, connection, cmd):
+        response, sw1, sw2 = connection.transmit(cmd)
+        if not self.processResponse(sw1, sw2):
+            print "CMD: " + str(cmd)
+            sys.exit(1)
         else:
-            return False
+            return response
+
+    def processResponse(self, sw1, sw2):
+        response = False
+        if sw1 is 0x90 and sw2 is 0x00:
+            response = True
+        elif sw1 is 0x67 and sw2 is 0x00:
+            print "Wrong length (Lc incoherent with Data In)"
+        elif sw1 is 0x68 and sw2 is 0x00:
+            print "CLA byte is not correct"
+        elif sw1 is 0x6a and sw2 is 0x81:
+            print "Function not supported (INS byte is not correct), or not available for the selected card"
+        elif sw1 is 0x6B and sw2 is 0x00:
+            print "Wrong parameter P1-P2"
+        elif sw1 is 0x6F and sw2 is 0x01:
+            print "Card mute (or removed)"
+        return response
 
 
 if __name__ == '__main__':
