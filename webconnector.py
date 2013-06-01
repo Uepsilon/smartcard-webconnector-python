@@ -5,14 +5,14 @@
 Smartcard Webconnector - Idenify with your Smartcard!
 
 Usage:
-    webconnector.py -U=<url> -R=<resource> -E=<event>
+    webconnector.py -U=<url> -E=<event-key> (-R=<resource>)
     webconnector.py -h
     webconnector.py --version
 
 Options:
     -U --url=<url>              Url to POST to
-    -R --resource=<resource>    Resource-Name
-    -E --event=<event>          Event-ID
+    -E --event-key=<event-key>      Event-Key
+    -R --resource=<resource>    Resource-Name (optional)
     -h --help                   Shows this Screen
     --version                   Shows the Version
 """
@@ -39,6 +39,7 @@ class Webconnector():
     lastId = None
     url = None
     resource = None
+    event_key = None
 
     """
         MainClass for the Webconnector
@@ -46,6 +47,7 @@ class Webconnector():
     def __init__(self, args):
         # set url + Resource
         self.url = args['--url']
+        self.event_key = args['--event-key']
         self.resource = args['--resource'] if args['--resource'] else None
 
         self.cardRequest = CardRequest(timeout=None, cardType=self.cardType)
@@ -72,6 +74,7 @@ class Webconnector():
     def webConnect(self, uid):
         request_data = {}
         request_data['card_uid'] = "".join(map(str, uid))
+        request_data['event_key'] = self.event_key
 
         if self.resource is not None:
             request_data['resource'] = self.resource
