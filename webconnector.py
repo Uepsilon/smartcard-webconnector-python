@@ -4,16 +4,16 @@
 Smartcard Webconnector - Idenify with your Smartcard!
 
 Usage:
-    webconnector.py -U=<url> -E=<event-key> (-R=<resource>)
+    webconnector.py -U=<url> -E=<event-key> -R=<resource-key>
     webconnector.py -h
     webconnector.py --version
 
 Options:
-    -U --url=<url>              Url to POST to
-    -E --event-key=<event-key>      Event-Key
-    -R --resource=<resource>    Resource-Name (optional)
-    -h --help                   Shows this Screen
-    --version                   Shows the Version
+    -U --url=<url>                      Url to POST to
+    -E --event-key=<event-key>          Event-Key
+    -R --resource-key=<resource-key>    Resource-Key
+    -h --help                           Shows this Screen
+    --version                           Shows the Version
 """
 
 from smartcard.util import *
@@ -48,7 +48,7 @@ class Webconnector():
         # set url + Resource
         self.url = args['--url']
         self.event_key = args['--event-key']
-        self.resource = args['--resource'] if args['--resource'] else None
+        self.resource = args['--resource-key'] if args['--resource-key'] else None
 
         self.cardRequest = CardRequest(timeout=None, cardType=self.cardType)
         while True:
@@ -61,9 +61,10 @@ class Webconnector():
 
             if self.checkNewUID(cardUID):
                 # here we go
+                print "UID: " + str(cardUID)
                 self.webConnect(cardUID)
             else:
-                print "Same UID as Before... Skipping..."
+                print "#### Same UID ( " + str(cardUID) + " ) as Before... Skipping... ####"
 
             cardservice.connection.disconnect()
 
@@ -79,12 +80,15 @@ class Webconnector():
         if self.resource is not None:
             request_data['resource'] = self.resource
 
-        response = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
+        try:
+            response = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
 
-        if response.code is 200:
-            processWebResponse(reponse)
-        else:
-            print "Error from Webservice: " + str(response.code)
+            if response.code is 200:
+                processWebResponse(reponse)
+            else:
+                print "Error from Webservice: " + str(response.code)
+        except Exception as e:
+            print e
 
     def processWebResponse(self, response):
         if response.info().getheader('Content-Type') is 'application/json':
@@ -92,6 +96,8 @@ class Webconnector():
             print proccessedResponse
         else:
             print response.body
+        if response.code is 200:
+            processWebResponse7
 
     def checkNewUID(self, uid):
         if uid == self.lastId or uid is False:
