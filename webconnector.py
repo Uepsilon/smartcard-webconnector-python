@@ -84,20 +84,17 @@ class Webconnector():
             response = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
 
             if response.code is 200:
-                processWebResponse(reponse)
+                self.processWebResponse(response)
             else:
                 print "Error from Webservice: " + str(response.code)
         except Exception as e:
             print e
 
     def processWebResponse(self, response):
-        if response.info().getheader('Content-Type') is 'application/json':
-            proccessedResponse = json.loads(reponse.body)
-            print proccessedResponse
+        if 'application/json' in response.info().getheader('Content-Type') :
+            print json.loads(response.read())
         else:
-            print response.body
-        if response.code is 200:
-            processWebResponse7
+            print response.info().getheader('Content-Type')
 
     def checkNewUID(self, uid):
         if uid == self.lastId or uid is False:
