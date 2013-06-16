@@ -61,9 +61,10 @@ class Webconnector():
 
             if self.checkNewUID(cardUID):
                 # here we go
+                print "UID: " + str(cardUID)
                 self.webConnect(cardUID)
             else:
-                print "Same UID as Before... Skipping..."
+                print "#### Same UID ( " + str(cardUID) + " ) as Before... Skipping... ####"
 
             cardservice.connection.disconnect()
 
@@ -79,12 +80,15 @@ class Webconnector():
         if self.resource is not None:
             request_data['resource'] = self.resource
 
-        result = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
+        try:
+            result = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
 
-        if result.code is 200:
-            return True
-        else:
-            return False
+            if result.code is 200:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print e
 
     def checkNewUID(self, uid):
         if uid == self.lastId or uid is False:
