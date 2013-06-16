@@ -1,4 +1,3 @@
-
 #! /usr/bin/env python
 
 """
@@ -23,6 +22,7 @@ from smartcard.CardRequest import CardRequest
 from docopt import docopt
 import urllib
 import sys
+import json
 
 # define the apdus used in this script
 GET_RESPONSE = [0XA0, 0XC0, 0x00, 0x00]
@@ -79,12 +79,19 @@ class Webconnector():
         if self.resource is not None:
             request_data['resource'] = self.resource
 
-        result = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
+        response = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
 
-        if result.code is 200:
-            return True
+        if response.code is 200:
+            processWebResponse(reponse)
         else:
-            return False
+            print "Error from Webservice: " + str(response.code)
+
+    def processWebResponse(self, response):
+        if response.info().getheader('Content-Type') is 'application/json':
+            proccessedResponse = json.loads(reponse.body)
+            print proccessedResponse
+        else:
+            print response.body
 
     def checkNewUID(self, uid):
         if uid == self.lastId or uid is False:
@@ -95,17 +102,17 @@ class Webconnector():
 
     def getUID(self, connection):
         # Read UID from Card
-        return self.transmission(connection, GET_UID)
+        return self.executeCardCmd(connection, GET_UID)
 
-    def transmission(self, connection, cmd):
+    def executeCardCmd(self, connection, cmd):
         response, sw1, sw2 = connection.transmit(cmd)
-        if not self.processResponse(sw1, sw2):
+        if not self.validateCardResponse(sw1, sw2):
             print "CMD: " + str(cmd)
             sys.exit(1)
         else:
             return response
 
-    def processResponse(self, sw1, sw2):
+    def validateCardResponse(self, sw1, sw2):
         response = False
         if sw1 is 0x90 and sw2 is 0x00:
             response = True
