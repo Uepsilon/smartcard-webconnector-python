@@ -81,6 +81,7 @@ class Webconnector():
             request_data['resource'] = self.resource
 
         try:
+            print "Calling " + str(self.url) + " with Options: " + str(request_data)
             response = urllib.urlopen(self.url, data=urllib.urlencode(request_data))
 
             if response.code is 200:
