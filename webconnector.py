@@ -4,7 +4,7 @@
 Smartcard Webconnector - Idenify with your Smartcard!
 
 Usage:
-    webconnector.py -U=<url> -E=<event-key> -R=<resource-key>
+    webconnector.py -U=<url> -E=<event-key> [-R=<resource-key>]
     webconnector.py -h
     webconnector.py --version
 
@@ -23,6 +23,7 @@ from docopt import docopt
 import urllib
 import sys
 import json
+import hashlib
 
 # define the apdus used in this script
 GET_RESPONSE = [0XA0, 0XC0, 0x00, 0x00]
@@ -56,6 +57,10 @@ class Webconnector():
 
             # At this point, a card is inserted -> Connect to that very card
             cardservice.connection.connect()
+
+            # Get Reader-ID as Resource
+            if self.resource is None:
+                self.resource = self.getReaderID(cardservice.connection)
 
             cardUID = self.getUID(cardservice.connection)
 
@@ -103,6 +108,12 @@ class Webconnector():
         else:
             self.lastId = uid
             return True
+
+    def getReaderID(self, connection):
+        # Read SHA1-Hash of Reader-Name (as Readers are addressed by Names not IDs)
+        m = hashlib.sha1()
+        m.update(str(connection.getReader()))
+        return m.hexdigest()
 
     def getUID(self, connection):
         # Read UID from Card
