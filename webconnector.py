@@ -14,10 +14,10 @@ Options:
     --version                           Shows the Version
 """
 
+import threading
 from smartcard.CardMonitoring import CardMonitor, CardObserver
 from docopt import docopt
-# import RPi.GPIO as GPIO
-import threading
+from leds import ledSignal
 
 from cardWebconnector import cardWebconnector
 
@@ -36,15 +36,7 @@ class Webconnector():
         MainClass for the Webconnector
     """
     def __init__(self, args):
-        # Set GPIO-Mode to BCM
-        # GPIO.setmode(GPIO.BOARD)
-
-        # Define GPIO-Output LEDs
-        # for led, port in indicatorLeds.iteritems():
-        #     if led is 'power':
-        #         GPIO.setup(port, GPIO.OUT, initial=GPIO.HIGH)
-        #     else:
-        #         GPIO.setup(port, GPIO.OUT, initial=GPIO.LOW)
+        ledSignal.setup()
 
         self.cardmonitor = CardMonitor()
         self.cardobserver = cardWebconnector(args)
@@ -54,12 +46,9 @@ class Webconnector():
         while True:
             pass
 
-
-            # self.switchLed(indicatorLeds['success'], GPIO.Low)
-            # self.switchLed(indicatorLeds['error'], GPIO.Low)
-
     def shutdown(self):
         self.removeCardObserver(self.cardobserver)
+        ledSignal.shutdown()
 
     def addCardObserver(self, observer):
         self.cardmonitor.addObserver(observer)
@@ -73,17 +62,14 @@ class Webconnector():
             urllib2.urlopen(self.url, timeout=1)
 
             # Connection successful, activate Connection-LED
-            # self.switchLed(self.indicatorLeds['connection'], GPIO.HIGH)
+            ledSignal.switchLed(16, True)
             return True
         except urllib2.URLError as e:
+            # No Connection to Server
             print "No Connection to Server"
-            # self.switchLed(self.indicatorLeds['connection'], GPIO.LOW)
+            ledSignal.switchLed(16, False)
         finally:
             return False
-
-    # def switchLed(self, port, status):
-        print str(port) + " will be set to " + str(status)
-        # GPIO.output(port, status);
 
 
 if __name__ == '__main__':
@@ -92,4 +78,3 @@ if __name__ == '__main__':
         webconnector = Webconnector(args)
     finally:
         webconnector.shutdown()
-        # GPIO.cleanup()

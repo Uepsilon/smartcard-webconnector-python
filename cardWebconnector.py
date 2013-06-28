@@ -4,6 +4,7 @@ import sys
 import json
 import hashlib
 from smartcard.util import *
+from leds import ledSignal
 
 # import RPi.GPIO as GPIO
 
@@ -45,6 +46,10 @@ class cardWebconnector(object):
             else:
                 print "#### Same UID ( " + str(cardUID) + " ) as Before... Skipping... ####"
 
+        for card in removedcards:
+            ledSignal.switchLed(11, False)
+            ledSignal.switchLed(15, False)
+
     def webConnect(self, uid, resource):
         request_data = {}
         request_data['card_uid'] = "".join(map(str, uid))
@@ -60,15 +65,15 @@ class cardWebconnector(object):
             if response.code is 200:
                 self.processWebResponse(response)
                 # Turn Success-LED on
-                # GPIO.output(15, GPIO.HIGH)
+                ledSignal.switchLed(15, True)
             else:
                 # Turn Error-LED on
-                # GPIO.output(11, GPIO.HIGH)
+                ledSignal.switchLed(11, True)
 
                 print "Error from Webservice: " + str(response.code)
         except urllib2.URLError as e:
+            ledSignal.switchLed(15, True)
             print "No Connection to Server"
-            # self.switchLed(self.indicatorLeds['connection'], GPIO.LOW)
         except Exception as e:
             print e
 
