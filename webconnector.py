@@ -15,11 +15,11 @@ Options:
 """
 
 import threading
-from smartcard.CardMonitoring import CardMonitor, CardObserver
-from docopt import docopt
-from leds import ledSignal
+import feedbackHandler
 
 from cardWebconnector import cardWebconnector
+from smartcard.CardMonitoring import CardMonitor, CardObserver
+from docopt import docopt
 
 class Webconnector():
     indicatorLeds = {
@@ -36,7 +36,7 @@ class Webconnector():
         MainClass for the Webconnector
     """
     def __init__(self, args):
-        ledSignal.setup()
+        feedbackHandler.setup()
 
         self.cardmonitor = CardMonitor()
         self.cardobserver = cardWebconnector(args)
@@ -48,7 +48,7 @@ class Webconnector():
 
     def shutdown(self):
         self.removeCardObserver(self.cardobserver)
-        ledSignal.shutdown()
+        feedbackHandler.shutdown()
 
     def addCardObserver(self, observer):
         self.cardmonitor.addObserver(observer)
@@ -62,19 +62,22 @@ class Webconnector():
             urllib2.urlopen(self.url, timeout=1)
 
             # Connection successful, activate Connection-LED
-            ledSignal.switchLed(16, True)
+            feedbackHandler.setFeedback(feedbackHandler.CONNECTIONo, feedbackHandler.ACTIVE)
             return True
         except urllib2.URLError as e:
             # No Connection to Server
             print "No Connection to Server"
-            ledSignal.switchLed(16, False)
+            feedbackHandler.switchLed(feedbackHandler.CONNECTION, feedbackHandler.INACTIVE)
         finally:
             return False
-
 
 if __name__ == '__main__':
     try:
         args = docopt(__doc__, version='Smartcard Webconnector: 0.1')
         webconnector = Webconnector(args)
     finally:
-        webconnector.shutdown()
+        try:
+            webconnector.shutdown()
+        except NameError:
+            # webconnector not defined, nothing to do here
+            pass

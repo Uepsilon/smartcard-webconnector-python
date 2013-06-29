@@ -3,8 +3,9 @@ import urllib2
 import sys
 import json
 import hashlib
+import feedbackHandler
+
 from smartcard.util import *
-from leds import ledSignal
 
 # import RPi.GPIO as GPIO
 
@@ -21,11 +22,6 @@ class cardWebconnector(object):
     def __init__(self, args):
         self.url = args['--url']
         self.eventKey = args['--event-key']
-
-        # Set GPIO-Mode to BCM
-        # GPIO.setmode(GPIO.BOARD)
-        # GPIO.setup(11, GPIO.OUT, initial=GPIO.LOW)
-        # GPIO.setup(15, GPIO.OUT, initial=GPIO.LOW)
 
     def update(self, observable, (addedcards, removedcards)):
         for card in addedcards:
@@ -47,8 +43,8 @@ class cardWebconnector(object):
                 print "#### Same UID ( " + str(cardUID) + " ) as Before... Skipping... ####"
 
         for card in removedcards:
-            ledSignal.switchLed(11, False)
-            ledSignal.switchLed(15, False)
+            feedbackHandler.setFeedback(feedbackHandler.SUCCESS, feedbackHandler.INACTIVE)
+            feedbackHandler.setFeedback(feedbackHandler.ERROR, feedbackHandler.INACTIVE)
 
     def webConnect(self, uid, resource):
         request_data = {}
@@ -64,16 +60,16 @@ class cardWebconnector(object):
 
             if response.code is 200:
                 self.processWebResponse(response)
-                # Turn Success-LED on
-                ledSignal.switchLed(15, True)
+                # Yay, everything good -> Success-Feedback
+                feedbackHandler.setFeedback(feedbackHandler.SUCCESS, feedbackHandler.ACTIVE)
             else:
-                # Turn Error-LED on
-                ledSignal.switchLed(11, True)
+                # Not 200er Code? Error-Feedback
+                feedbackHandler.setFeedback(feedbackHandler.ERROR, feedbackHandler.ACTIVE)
 
                 print "Error from Webservice: " + str(response.code)
         except urllib2.URLError as e:
-            ledSignal.switchLed(15, True)
-            print "No Connection to Server"
+            # Error while POSTing Data -> Error-Feedback
+            feedbackHandler.setFeedback(feedbackHandler.ERROR, feedbackHandler.ACTIVE)
         except Exception as e:
             print e
 
