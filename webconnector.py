@@ -38,10 +38,8 @@ class Webconnector():
 
         self.addCardObserver(self.cardobserver)
 
-        while True:
-            pass
-
     def shutdown(self):
+        print "Shutdown"
         self.removeCardObserver(self.cardobserver)
         feedbackHandler.shutdown()
 
@@ -67,9 +65,15 @@ class Webconnector():
             return False
 
 if __name__ == '__main__':
+    webconnector = None
+
     try:
         args = docopt(__doc__, version='Smartcard Webconnector: 0.1')
         webconnector = Webconnector(args)
+
+        while True:
+            # Wait for SIGTERM
+            pass
     finally:
         try:
             webconnector.shutdown()

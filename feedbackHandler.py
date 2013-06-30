@@ -1,8 +1,8 @@
-import RPi.GPIO
+import RPi.GPIO as GPIO
 
-SUCCESS = 11
+SUCCESS = 15
 POWER = 13
-ERROR = 15
+ERROR = 11
 CONNECTION = 16
 
 ACTIVE = GPIO.HIGH
@@ -13,14 +13,22 @@ def setup():
     GPIO.setmode(GPIO.BOARD)
 
     # Define GPIO-Output LEDs
-    GPIO.setup(13, GPIO.OUT, initial=GPIO.HIGH) # Power-Indikator
+    GPIO.setup(POWER, GPIO.OUT, initial=GPIO.HIGH) # Power-Indikator
 
-    GPIO.setup(11, GPIO.OUT, initial=GPIO.LOW)
-    GPIO.setup(15, GPIO.OUT, initial=GPIO.LOW)
-    GPIO.setup(16, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(SUCCESS, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(ERROR, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(CONNECTION, GPIO.OUT, initial=GPIO.LOW)
 
 def setFeedback(channel, status):
     GPIO.output(channel, status);
 
 def shutdown():
+    # Turn all LEDs off before leaving
+    GPIO.output(POWER, INACTIVE)
+    GPIO.output(SUCCESS, INACTIVE)
+    GPIO.output(ERROR, INACTIVE)
+    GPIO.output(CONNECTION, INACTIVE)
+
+    # and free GPIO-Interface
     GPIO.cleanup()
+
