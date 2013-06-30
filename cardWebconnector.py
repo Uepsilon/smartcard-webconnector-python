@@ -41,6 +41,7 @@ class cardWebconnector(object):
                 self.webConnect(cardUID, resource)
             else:
                 print "#### Same UID ( " + str(cardUID) + " ) as Before... Skipping... ####"
+                feedbackHandler.setFeedback(feedbackHandler.ERROR, feedbackHandler.ACTIVE)
 
         for card in removedcards:
             feedbackHandler.setFeedback(feedbackHandler.SUCCESS, feedbackHandler.INACTIVE)
@@ -56,9 +57,10 @@ class cardWebconnector(object):
             print "Calling " + str(self.url) + " with Options: " + str(request_data)
             request = urllib2.Request(self.url, data=json.dumps(request_data))
             request.add_header('Content-Type', 'application/json')
-            response = urllib2.urlopen(request)
+            response = urllib2.urlopen(request, timeout=1)
 
             if response.code is 200:
+                self.saveCurrUID(uid)
                 self.processWebResponse(response)
                 # Yay, everything good -> Success-Feedback
                 feedbackHandler.setFeedback(feedbackHandler.SUCCESS, feedbackHandler.ACTIVE)
@@ -77,8 +79,9 @@ class cardWebconnector(object):
         if uid == self.lastId or uid is False:
             return False
         else:
-            self.lastId = uid
             return True
+    def saveCurrUID(self, uid):
+        self.lastId = uid
 
     def getReaderID(self, connection):
         # Read SHA1-Hash of Reader-Name (as Readers are addressed by Names not IDs)

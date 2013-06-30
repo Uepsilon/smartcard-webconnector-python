@@ -3,13 +3,14 @@
 Smartcard Webconnector - Idenify with your Smartcard!
 
 Usage:
-    webconnector.py -U=<url> -E=<event-key>
+    webconnector.py -U=<url> -E=<event-key> [-d=<delay>]
     webconnector.py -h
     webconnector.py --version
 
 Options:
     -U --url=<url>                      Url to POST to
     -E --event-key=<event-key>          Event-Key
+    -d --delay=<delay>                  Delay between Connection-Checks              
     -h --help                           Shows this Screen
     --version                           Shows the Version
 """
@@ -17,6 +18,8 @@ Options:
 
 import threading
 import feedbackHandler
+import time
+import urllib2
 
 from cardWebconnector import cardWebconnector
 from smartcard.CardMonitoring import CardMonitor, CardObserver
@@ -49,31 +52,36 @@ class Webconnector():
     def removeCardObserver(self, observer):
         self.cardmonitor.deleteObserver(observer)
 
-    def connectionAvailable(self, uid):
+    def checkConnection(self, url):
         try:
             # Try connection
-            urllib2.urlopen(self.url, timeout=1)
+            response = urllib2.urlopen(url, timeout=1)
 
             # Connection successful, activate Connection-LED
-            feedbackHandler.setFeedback(feedbackHandler.CONNECTIONo, feedbackHandler.ACTIVE)
+            feedbackHandler.setFeedback(feedbackHandler.CONNECTION, feedbackHandler.ACTIVE)
+
             return True
         except urllib2.URLError as e:
             # No Connection to Server
-            print "No Connection to Server"
-            feedbackHandler.switchLed(feedbackHandler.CONNECTION, feedbackHandler.INACTIVE)
+            feedbackHandler.setFeedback(feedbackHandler.CONNECTION, feedbackHandler.INACTIVE)
         finally:
             return False
 
 if __name__ == '__main__':
-    webconnector = None
-
     try:
         args = docopt(__doc__, version='Smartcard Webconnector: 0.1')
+
+        if args['--delay'] is None:
+            timeout = 10
+        else:
+            timeout = int(args['--delay'])
+
         webconnector = Webconnector(args)
 
         while True:
-            # Wait for SIGTERM
-            pass
+            # Wait for SIGTERM and check connection every now and then
+            webconnector.checkConnection(args['--url'])
+            time.sleep(timeout)
     finally:
         try:
             webconnector.shutdown()
