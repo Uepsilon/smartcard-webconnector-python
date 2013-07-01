@@ -16,7 +16,7 @@ somone authenticates)
 You'll need this stuff in order to be able to use this script.
 
 Python:  
-* [pyscard](http://pyscard.sourceforge.net/) -> Library for Python to use PC/CS
+* [pyscard](http://pyscard.sourceforge.net/) -> Library for Python to use PC/SC
 * docopt
 
 Global:  
