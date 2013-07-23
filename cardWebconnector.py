@@ -10,18 +10,14 @@ from smartcard.util import *
 # import RPi.GPIO as GPIO
 
 # define the apdus used in this script
-GET_RESPONSE = [0XA0, 0XC0, 0x00, 0x00]
-SELECT = [0xA0, 0xA4, 0x00, 0x00, 0x02]
 GET_UID = [0xFF, 0xCA, 0x00, 0x00, 0x00]
 
 class cardWebconnector(object):
     lastId = None
     url = None
-    eventKey = None
 
     def __init__(self, args):
         self.url = args['--url']
-        self.eventKey = args['--event-key']
 
     def update(self, observable, (addedcards, removedcards)):
         for card in addedcards:
@@ -50,7 +46,6 @@ class cardWebconnector(object):
     def webConnect(self, uid, resource):
         request_data = {}
         request_data['card_uid'] = "".join(map(str, uid))
-        request_data['event_key'] = self.eventKey
         request_data['resource'] = resource
 
         try:

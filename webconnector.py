@@ -3,14 +3,13 @@
 Smartcard Webconnector - Idenify with your Smartcard!
 
 Usage:
-    webconnector.py -U=<url> -E=<event-key> [-d=<delay>]
+    webconnector.py -U=<url> [-d=<delay>]
     webconnector.py -h
     webconnector.py --version
 
 Options:
     -U --url=<url>                      Url to POST to
-    -E --event-key=<event-key>          Event-Key
-    -d --delay=<delay>                  Delay between Connection-Checks              
+    -d --delay=<delay>                  Delay between Connection-Checks
     -h --help                           Shows this Screen
     --version                           Shows the Version
 """
