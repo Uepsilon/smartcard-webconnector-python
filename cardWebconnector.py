@@ -55,7 +55,7 @@ class cardWebconnector(object):
             request.add_header('Content-Type', 'application/json')
             response = urllib2.urlopen(request, timeout=1)
 
-            if response.code is 200:
+            if response.code is 200 or response.code is 201:
                 self.saveCurrUID(uid)
                 self.processWebResponse(response)
                 # Yay, everything good -> Success-Feedback
