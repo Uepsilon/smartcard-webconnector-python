@@ -44,9 +44,9 @@ class cardWebconnector(object):
             feedbackHandler.setFeedback(feedbackHandler.ERROR, feedbackHandler.INACTIVE)
 
     def webConnect(self, uid, resource):
-        request_data = {}
-        request_data['card_uid'] = "".join(map(str, uid))
-        request_data['resource'] = resource
+        request_data = {"checkin" = {}}
+        request_data['checkin']['smartcard_id'] = "".join(map(str, uid))
+        request_data['checkin']['reader_id'] = resource
 
         try:
             print "Calling " + str(self.url) + " with Options: " + str(request_data)
